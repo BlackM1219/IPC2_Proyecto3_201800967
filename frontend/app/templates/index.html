@@ -1,0 +1,63 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Bienvenido al Sistema de Facturación en la Nube</h2>
+<p>Gestión y facturación de recursos de infraestructura en la nube.</p>
+
+<div style="margin-top: 2rem;">
+    <h3>Operaciones del Sistema</h3>
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+
+        <div style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px;">
+            <h4>📤 Cargar Configuración</h4>
+            <p>Sube archivos XML con recursos, categorías y clientes.</p>
+            <a href="/configuracion/" class="btn" style="margin-top: 1rem;">Ir</a>
+        </div>
+
+        <div style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px;">
+            <h4>⏱️ Registrar Consumos</h4>
+            <p>Carga consumos de recursos de las instancias.</p>
+            <a href="/consumo/" class="btn" style="margin-top: 1rem;">Ir</a>
+        </div>
+
+        <div style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px;">
+            <h4>🔍 Consultar Datos</h4>
+            <p>Visualiza recursos, categorías y clientes registrados.</p>
+            <a href="/consultar/" class="btn" style="margin-top: 1rem;">Ir</a>
+        </div>
+
+        <div style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px;">
+            <h4>➕ Crear Datos</h4>
+            <p>Crea manualmente recursos, categorías e instancias.</p>
+            <a href="/crear/" class="btn" style="margin-top: 1rem;">Ir</a>
+        </div>
+
+        <div style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px;">
+            <h4>💰 Facturación</h4>
+            <p>Genera facturas y consulta el historial.</p>
+            <a href="/facturar/" class="btn btn-success" style="margin-top: 1rem;">Ir</a>
+        </div>
+
+        <div style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px;">
+            <h4>🔄 Inicializar Sistema</h4>
+            <p>Elimina todos los datos.</p>
+            <button onclick="inicializar()" class="btn btn-danger" style="margin-top: 1rem;">Inicializar</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function inicializar() {
+        if (confirm('¿Eliminar TODOS los datos del sistema?')) {
+            fetch('/inicializar/', {
+                method: 'POST'
+            })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) alert(d.mensaje);
+                    else alert('Error: ' + d.error);
+                });
+        }
+    }
+</script>
+{% endblock %}

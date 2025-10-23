@@ -1,0 +1,37 @@
+{% extends 'base.html' %} {% block content %}
+<h2>📤 Enviar Archivo de Configuración XML</h2>
+<p>Sube un archivo XML con recursos, categorías y clientes.</p>
+
+<form id="form" enctype="multipart/form-data" style="margin-top: 2rem;">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>Archivo XML:</label>
+        <input type="file" name="archivo_xml" accept=".xml" required>
+    </div>
+    <button type="submit" class="btn">Enviar</button>
+</form>
+
+<div id="resultado"></div>
+
+<script>
+    document.getElementById('form').onsubmit = function (e) {
+        e.preventDefault();
+        const form = new FormData(this);
+        const result = document.getElementById('resultado');
+        result.innerHTML = '<p>Procesando...</p>';
+
+        fetch('/configuracion/', {
+            method: 'POST',
+            body: form
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    result.innerHTML = `<div class="alert alert-success">✓ ${d.mensaje}<br>${d.detalles}</div>`;
+                } else {
+                    result.innerHTML = `<div class="alert alert-error">✗ ${d.error}</div>`;
+                }
+            });
+    };
+</script>
+{% endblock %}

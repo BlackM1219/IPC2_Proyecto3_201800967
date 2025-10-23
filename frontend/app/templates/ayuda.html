@@ -1,0 +1,62 @@
+{% extends 'base.html' %} {% block content %}
+<h2>❓ Ayuda e Información</h2>
+
+<div style="margin-top: 2rem;">
+    <h3>👤 Información del Estudiante</h3>
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <p><strong>Carnet:</strong> 201800967</p>
+        <p><strong>Nombre:</strong> Angel Moises Lopez Yus</p>
+        <p><strong>Curso:</strong> Introducción a la Programación y Computación 2</p>
+        <p><strong>Sección:</strong> D </p>
+    </div>
+</div>
+
+<div style="margin-top: 2rem;">
+    <h3>📚 Documentación del Sistema</h3>
+
+    <h4 style="margin-top: 1.5rem;">Descripción</h4>
+    <p>Sistema de facturación de recursos de infraestructura en la nube. Permite gestionar recursos, categorías,
+        configuraciones, clientes e instancias.</p>
+
+    <h4 style="margin-top: 1.5rem;">Funcionalidades</h4>
+    <ul style="line-height: 1.8;">
+        <li><strong>Cargar Configuración:</strong> Importa recursos, categorías y clientes desde XML</li>
+        <li><strong>Registrar Consumos:</strong> Carga los tiempos de uso de instancias</li>
+        <li><strong>Consultar Datos:</strong> Visualiza información del sistema</li>
+        <li><strong>Crear Datos:</strong> Añade elementos manualmente</li>
+        <li><strong>Facturación:</strong> Genera facturas y descarga PDFs</li>
+        <li><strong>Inicializar:</strong> Reinicia la base de datos</li>
+    </ul>
+
+    <h4 style="margin-top: 1.5rem;">Tecnologías</h4>
+    <ul style="line-height: 1.8;">
+        <li><strong>Backend:</strong> Flask (Python) - API REST</li>
+        <li><strong>Frontend:</strong> Django (Python) - Web App</li>
+        <li><strong>Base de Datos:</strong> XML</li>
+        <li><strong>PDFs:</strong> ReportLab</li>
+    </ul>
+
+    <h4 style="margin-top: 1.5rem;">Formatos</h4>
+    <ul style="line-height: 1.8;">
+        <li><strong>Fechas:</strong> dd/mm/yyyy (ej: 15/10/2025)</li>
+        <li><strong>Fecha-Hora:</strong> dd/mm/yyyy hh:mm (ej: 15/10/2025 14:30)</li>
+        <li><strong>NIT:</strong> números-dígito (ej: 12345678-9 o 110339001-K)</li>
+        <li><strong>Tipos de Recurso:</strong> Hardware o Software</li>
+        <li><strong>Estados:</strong> Vigente o Cancelada</li>
+    </ul>
+
+    <h4 style="margin-top: 1.5rem;">Flujo de Trabajo</h4>
+    <ol style="line-height: 1.8;">
+        <li>Cargar XML de configuración</li>
+        <li>Verificar datos en Consultar</li>
+        <li>Cargar XML de consumos</li>
+        <li>Generar facturas por período</li>
+        <li>Descargar PDFs</li>
+    </ol>
+
+    <div
+        style="margin-top: 2rem; background: #fff3cd; padding: 1rem; border-left: 4px solid #ffc107; border-radius: 5px;">
+        <strong>⚠️ Fecha límite:</strong> 24 de octubre de 2025 - 23:59. NO HABRÁ PRÓRROGA.
+    </div>
+</div>
+{% endblock %}

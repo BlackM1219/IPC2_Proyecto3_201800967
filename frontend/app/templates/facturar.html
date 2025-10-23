@@ -1,0 +1,77 @@
+{% extends 'base.html' %} {% block content %}
+<h2>💰 Proceso de Facturación</h2>
+
+<div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+    <h3>Generar Nuevas Facturas</h3>
+    <form id="formFacturar" style="margin-top: 1rem;">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Fecha Inicio (dd/mm/yyyy):</label>
+                <input type="text" name="fecha_inicio" placeholder="01/10/2025" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Fecha Final (dd/mm/yyyy):</label>
+                <input type="text" name="fecha_final" placeholder="31/10/2025" required>
+            </div>
+            <button type="submit" class="btn btn-success">Generar</button>
+        </div>
+    </form>
+    <div id="resultado"></div>
+</div>
+
+<h3>Facturas Existentes</h3>
+{% if facturas %}
+<table>
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>NIT Cliente</th>
+            <th>Fecha</th>
+            <th>Monto Total</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in facturas %}
+        <tr>
+            <td>{{ f.numero }}</td>
+            <td>{{ f.nit_cliente }}</td>
+            <td>{{ f.fecha_factura }}</td>
+            <td>${{ f.monto_total|floatformat:2 }}</td>
+            <td>
+                <a href="/pdf/factura/{{ f.numero }}/" class="btn" style="padding: 0.5rem 1rem;">
+                    📄 PDF
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No hay facturas generadas aún.</p>
+{% endif %}
+
+<script>
+    document.getElementById('formFacturar').onsubmit = function (e) {
+        e.preventDefault();
+        const form = new FormData(this);
+        const result = document.getElementById('resultado');
+        result.innerHTML = '<p>Generando facturas...</p>';
+
+        fetch('/facturar/', {
+            method: 'POST',
+            body: form
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    result.innerHTML = `<div class="alert alert-success">✓ ${d.mensaje}<br>${d.detalles}</div>`;
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    result.innerHTML = `<div class="alert alert-error">✗ ${d.error}</div>`;
+                }
+            });
+    };
+</script>
+{% endblock %}

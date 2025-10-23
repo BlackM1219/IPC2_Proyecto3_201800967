@@ -1,0 +1,50 @@
+{% extends 'base.html' %} {% block content %}
+<h2>🔍 Consultar Datos del Sistema</h2>
+
+{% if error %}
+<div class="alert alert-error">Error: {{ error }}</div>
+{% endif %}
+
+<h3 style="margin-top: 2rem;">Recursos</h3>
+{% if recursos %}
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th>Valor/Hora</th>
+    </tr>
+    {% for r in recursos %}
+    <tr>
+        <td>{{r.id}}</td>
+        <td>{{r.nombre}}</td>
+        <td>{{r.tipo}}</td>
+        <td>${{r.valor_hora}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No hay recursos.</p>
+{% endif %}
+
+<h3 style="margin-top: 2rem;">Categorías</h3>
+{% if categorias %} {% for cat in categorias %}
+<div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
+    <h4>{{cat.nombre}}</h4>
+    <p>{{cat.descripcion}}</p>
+    <p><strong>Configuraciones:</strong> {{cat.configuraciones|length}}</p>
+</div>
+{% endfor %} {% else %}
+<p>No hay categorías.</p>
+{% endif %}
+
+<h3 style="margin-top: 2rem;">Clientes</h3>
+{% if clientes %} {% for cli in clientes %}
+<div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
+    <h4>{{cli.nombre}} ({{cli.nit}})</h4>
+    <p><strong>Usuario:</strong> {{cli.usuario}} | <strong>Email:</strong> {{cli.correo}}</p>
+    <p><strong>Instancias:</strong> {{cli.instancias|length}}</p>
+</div>
+{% endfor %} {% else %}
+<p>No hay clientes.</p>
+{% endif %} {% endblock %}

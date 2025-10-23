@@ -1,0 +1,84 @@
+{% extends 'base.html' %} {% block content %}
+<h2>➕ Crear Nuevos Datos</h2>
+
+<div class="form-group">
+    <label>Tipo de dato:</label>
+    <select id="tipo" onchange="mostrar()">
+        <option value="">Seleccione</option>
+        <option value="recurso">Recurso</option>
+        <option value="categoria">Categoría</option>
+        <option value="cliente">Cliente</option>
+        <option value="instancia">Instancia</option>
+    </select>
+</div>
+
+<div id="formContainer"></div>
+<div id="resultado"></div>
+
+<script>
+    function mostrar() {
+        const tipo = document.getElementById('tipo').value;
+        const container = document.getElementById('formContainer');
+        let html = '';
+
+        if (tipo === 'recurso') {
+            html = `<form id="f">{% csrf_token %}<input type="hidden" name="tipo" value="recurso">
+        <div class="form-group"><label>ID:</label><input name="id" required></div>
+        <div class="form-group"><label>Nombre:</label><input name="nombre" required></div>
+        <div class="form-group"><label>Abreviatura:</label><input name="abreviatura" required></div>
+        <div class="form-group"><label>Métrica:</label><input name="metrica" required></div>
+        <div class="form-group"><label>Tipo:</label><select name="tipo_recurso"><option>Hardware</option><option>Software</option></select></div>
+        <div class="form-group"><label>Valor/Hora:</label><input type="number" step="0.01" name="valor_hora" required></div>
+        <button type="submit" class="btn">Crear</button></form>`;
+        } else if (tipo === 'categoria') {
+            html = `<form id="f">{% csrf_token %}<input type="hidden" name="tipo" value="categoria">
+        <div class="form-group"><label>ID:</label><input name="id" required></div>
+        <div class="form-group"><label>Nombre:</label><input name="nombre" required></div>
+        <div class="form-group"><label>Descripción:</label><textarea name="descripcion" required></textarea></div>
+        <div class="form-group"><label>Carga Trabajo:</label><textarea name="carga_trabajo" required></textarea></div>
+        <button type="submit" class="btn">Crear</button></form>`;
+        } else if (tipo === 'cliente') {
+            html = `<form id="f">{% csrf_token %}<input type="hidden" name="tipo" value="cliente">
+        <div class="form-group"><label>NIT:</label><input name="nit" required></div>
+        <div class="form-group"><label>Nombre:</label><input name="nombre" required></div>
+        <div class="form-group"><label>Usuario:</label><input name="usuario" required></div>
+        <div class="form-group"><label>Clave:</label><input type="password" name="clave" required></div>
+        <div class="form-group"><label>Dirección:</label><input name="direccion" required></div>
+        <div class="form-group"><label>Correo:</label><input type="email" name="correo" required></div>
+        <button type="submit" class="btn">Crear</button></form>`;
+        } else if (tipo === 'instancia') {
+            html = `<form id="f">{% csrf_token %}<input type="hidden" name="tipo" value="instancia">
+        <div class="form-group"><label>NIT Cliente:</label><input name="nit_cliente" required></div>
+        <div class="form-group"><label>ID:</label><input name="id" required></div>
+        <div class="form-group"><label>ID Configuración:</label><input name="id_configuracion" required></div>
+        <div class="form-group"><label>Nombre:</label><input name="nombre" required></div>
+        <div class="form-group"><label>Fecha Inicio:</label><input name="fecha_inicio" placeholder="01/10/2025" required></div>
+        <div class="form-group"><label>Estado:</label><select name="estado"><option>Vigente</option><option>Cancelada</option></select></div>
+        <button type="submit" class="btn">Crear</button></form>`;
+        }
+
+        container.innerHTML = html;
+        if (html) document.getElementById('f').onsubmit = enviar;
+    }
+
+    function enviar(e) {
+        e.preventDefault();
+        const form = new FormData(this);
+        const result = document.getElementById('resultado');
+
+        fetch('/crear/', {
+            method: 'POST',
+            body: form
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    result.innerHTML = `<div class="alert alert-success">✓ ${d.mensaje}</div>`;
+                    document.getElementById('f').reset();
+                } else {
+                    result.innerHTML = `<div class="alert alert-error">✗ ${d.error}</div>`;
+                }
+            });
+    }
+</script>
+{% endblock %}
