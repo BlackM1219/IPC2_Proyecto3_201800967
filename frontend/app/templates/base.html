@@ -1,163 +1,7 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tecnologías Chapinas{% endblock %}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
-
-        .navbar {
-            background: #2c3e50;
-            padding: 1rem;
-            color: white;
-        }
-
-        .navbar h1 {
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-        }
-
-        .navbar ul {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            background: #34495e;
-            border-radius: 5px;
-            transition: 0.3s;
-        }
-
-        .navbar a:hover {
-            background: #1abc9c;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 5px;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        button,
-        .btn {
-            padding: 0.7rem 1.5rem;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.3s;
-            display: inline-block;
-            text-decoration: none;
-        }
-
-        button:hover,
-        .btn:hover {
-            background: #2980b9;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-success {
-            background: #27ae60;
-        }
-
-        .btn-success:hover {
-            background: #229954;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        th,
-        td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background: #34495e;
-            color: white;
-        }
-
-        tr:hover {
-            background: #f5f5f5;
-        }
-    </style>
-</head>
-
-<body>
-    <nav class="navbar">
-        <h1>🌩️ Tecnologías Chapinas S.A. - Sistema de Facturación</h1>
-        <ul>
+<nav class="navbar">
+    <h1>🌩️ Tecnologías Chapinas S.A. - Sistema de Facturación</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <ul style="flex: 1; min-width: 600px;">
             <li><a href="/">Inicio</a></li>
             <li><a href="/configuracion/">Configuración</a></li>
             <li><a href="/consumo/">Consumos</a></li>
@@ -166,11 +10,15 @@
             <li><a href="/facturar/">Facturación</a></li>
             <li><a href="/ayuda/">Ayuda</a></li>
         </ul>
-    </nav>
-    <div class="container">
-        {% block content %}{% endblock %}
+        <div style="color: white; display: flex; align-items: center; gap: 1rem; padding: 0.5rem;">
+            <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 5px;">
+                👤 {{ request.session.nombre|default:"Usuario" }}
+            </span>
+            <a href="/logout/"
+                style="background: #e74c3c; padding: 0.6rem 1.2rem; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; transition: 0.3s;"
+                onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">
+                🚪 Cerrar Sesión
+            </a>
+        </div>
     </div>
-    {% block scripts %}{% endblock %}
-</body>
-
-</html>
+</nav>

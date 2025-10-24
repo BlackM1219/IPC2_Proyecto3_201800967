@@ -1,6 +1,7 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% block title %}Facturación{% endblock %} {% block content %}
 <h2>💰 Proceso de Facturación</h2>
 
+<!-- Generar Nuevas Facturas -->
 <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
     <h3>Generar Nuevas Facturas</h3>
     <form id="formFacturar" style="margin-top: 1rem;">
@@ -8,70 +9,150 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
             <div class="form-group" style="margin-bottom: 0;">
                 <label>Fecha Inicio (dd/mm/yyyy):</label>
-                <input type="text" name="fecha_inicio" placeholder="01/10/2025" required>
+                <input type="text" name="fecha_inicio" placeholder="01/10/2025" value="01/10/2025" required>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label>Fecha Final (dd/mm/yyyy):</label>
-                <input type="text" name="fecha_final" placeholder="31/10/2025" required>
+                <input type="text" name="fecha_final" placeholder="31/10/2025" value="31/10/2025" required>
             </div>
-            <button type="submit" class="btn btn-success">Generar</button>
+            <button type="submit" class="btn btn-success">Generar Facturas</button>
         </div>
     </form>
-    <div id="resultado"></div>
+    <div id="resultado" style="margin-top: 1rem;"></div>
 </div>
 
-<h3>Facturas Existentes</h3>
+<!-- Reportes de Análisis -->
+<div style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+    <h3>📊 Reportes de Análisis de Ventas</h3>
+    <p style="color: #666; margin-bottom: 1rem;">Genera reportes detallados de análisis por categorías o recursos</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <a href="/pdf/analisis/?tipo=categorias&fecha_inicio=01/10/2025&fecha_final=31/10/2025" class="btn"
+            style="text-align: center; text-decoration: none;" target="_blank">
+            📈 Análisis por Categorías (PDF)
+        </a>
+        <a href="/pdf/analisis/?tipo=recursos&fecha_inicio=01/10/2025&fecha_final=31/10/2025" class="btn"
+            style="text-align: center; text-decoration: none;" target="_blank">
+            📊 Análisis por Recursos (PDF)
+        </a>
+    </div>
+</div>
+
+<!-- Facturas Existentes -->
+<h3>Facturas Generadas</h3>
 {% if facturas %}
-<table>
-    <thead>
-        <tr>
-            <th>Número</th>
-            <th>NIT Cliente</th>
-            <th>Fecha</th>
-            <th>Monto Total</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for f in facturas %}
-        <tr>
-            <td>{{ f.numero }}</td>
-            <td>{{ f.nit_cliente }}</td>
-            <td>{{ f.fecha_factura }}</td>
-            <td>${{ f.monto_total|floatformat:2 }}</td>
-            <td>
-                <a href="/pdf/factura/{{ f.numero }}/" class="btn" style="padding: 0.5rem 1rem;">
-                    📄 PDF
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div style="overflow-x: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>NIT Cliente</th>
+                <th>Fecha</th>
+                <th>Monto Total</th>
+                <th>Detalles</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in facturas %}
+            <tr>
+                <td><strong>{{ f.numero|stringformat:"06d" }}</strong></td>
+                <td>{{ f.nit_cliente }}</td>
+                <td>{{ f.fecha_factura }}</td>
+                <td style="text-align: right;"><strong>${{ f.monto_total|floatformat:2 }}</strong></td>
+                <td style="text-align: center;">{{ f.detalles|length }} items</td>
+                <td style="text-align: center;">
+                    <a href="/pdf/factura/{{ f.numero }}/" class="btn"
+                        style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block;" target="_blank">
+                        📄 Descargar PDF
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="background: #e8f5e9; font-weight: bold;">
+                <td colspan="3" style="text-align: right;">TOTAL GENERAL:</td>
+                <td style="text-align: right;">
+                    ${% widthratio facturas|length 1 1 as count %} {{ facturas|map:'monto_total'|sum|floatformat:2 }}
+                </td>
+                <td colspan="2"></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
 {% else %}
-<p>No hay facturas generadas aún.</p>
+<div style="background: #fff3cd; padding: 2rem; border-radius: 8px; text-align: center; border: 2px dashed #ffc107;">
+    <p style="font-size: 1.2rem; color: #856404;">
+        📋 No hay facturas generadas aún.<br>
+        <small>Genera facturas usando el formulario de arriba.</small>
+    </p>
+</div>
 {% endif %}
 
 <script>
-    document.getElementById('formFacturar').onsubmit = function (e) {
+    document.getElementById('formFacturar').addEventListener('submit', function (e) {
         e.preventDefault();
-        const form = new FormData(this);
-        const result = document.getElementById('resultado');
-        result.innerHTML = '<p>Generando facturas...</p>';
+
+        const formData = new FormData(this);
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = '<p style="color: #3498db;">⏳ Generando facturas...</p>';
 
         fetch('/facturar/', {
             method: 'POST',
-            body: form
+            body: formData
         })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    result.innerHTML = `<div class="alert alert-success">✓ ${d.mensaje}<br>${d.detalles}</div>`;
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultadoDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>✓ ${data.mensaje}</strong><br>
+                    ${data.detalles}
+                </div>
+            `;
+                    // Recargar la página después de 2 segundos para mostrar las nuevas facturas
                     setTimeout(() => location.reload(), 2000);
                 } else {
-                    result.innerHTML = `<div class="alert alert-error">✗ ${d.error}</div>`;
+                    resultadoDiv.innerHTML = `
+                <div class="alert alert-error">
+                    <strong>✗ Error:</strong> ${data.error}
+                </div>
+            `;
                 }
+            })
+            .catch(error => {
+                resultadoDiv.innerHTML = `
+            <div class="alert alert-error">
+                <strong>✗ Error de conexión:</strong> ${error}
+            </div>
+        `;
             });
-    };
+    });
 </script>
+
+<style>
+    /* Estilos adicionales para la tabla */
+
+    table {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    table tbody tr:hover {
+        background-color: #f0f8ff;
+        transition: background-color 0.3s;
+    }
+
+    .btn {
+        transition: all 0.3s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    tfoot tr {
+        font-size: 1.1rem;
+    }
+</style>
 {% endblock %}
