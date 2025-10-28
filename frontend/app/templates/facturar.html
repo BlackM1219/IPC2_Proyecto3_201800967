@@ -72,8 +72,8 @@
         <tfoot>
             <tr style="background: #e8f5e9; font-weight: bold;">
                 <td colspan="3" style="text-align: right;">TOTAL GENERAL:</td>
-                <td style="text-align: right;">
-                    ${% widthratio facturas|length 1 1 as count %} {{ facturas|map:'monto_total'|sum|floatformat:2 }}
+                <td style="text-align: right;" id="totalGeneral">
+                    $0.00
                 </td>
                 <td colspan="2"></td>
             </tr>
@@ -127,6 +127,29 @@
             </div>
         `;
             });
+    });
+
+    // Calcular el total general cuando la página carga
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('tbody tr');
+        if (rows.length > 0) {
+            let total = 0;
+            rows.forEach(row => {
+                const montoCell = row.cells[3];
+                if (montoCell) {
+                    const montoText = montoCell.textContent.replace('$', '').replace(',', '').trim();
+                    const monto = parseFloat(montoText);
+                    if (!isNaN(monto)) {
+                        total += monto;
+                    }
+                }
+            });
+
+            const totalCell = document.getElementById('totalGeneral');
+            if (totalCell) {
+                totalCell.innerHTML = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+        }
     });
 </script>
 

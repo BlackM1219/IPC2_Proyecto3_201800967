@@ -8,6 +8,11 @@ def validar_nit(nit):
     return re.match(patron, nit) is not None
 
 
+def normalizar_nit(nit):
+    """Normaliza el NIT a mayúsculas"""
+    return nit.upper() if nit else nit
+
+
 def extraer_fecha(texto):
     """Extrae la primera fecha válida en formato dd/mm/yyyy"""
     patron = r"(\d{2})/(\d{2})/(\d{4})"
@@ -39,10 +44,10 @@ def extraer_fecha_hora(texto):
 
 
 def validar_tipo_recurso(tipo):
-    """Valida que el tipo sea Hardware o Software"""
-    return tipo in ["Hardware", "Software"]
+    """Valida que el tipo sea Hardware o Software (case insensitive)"""
+    return tipo.lower() in ["hardware", "software"]
 
 
 def validar_estado_instancia(estado):
-    """Valida que el estado sea Vigente o Cancelada"""
-    return estado in ["Vigente", "Cancelada"]
+    """Valida que el estado sea Vigente o Cancelada (case insensitive)"""
+    return estado.lower() in ["vigente", "cancelada"]

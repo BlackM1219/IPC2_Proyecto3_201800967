@@ -332,6 +332,8 @@ def listar_clientes():
 @app.route("/clientes/<nit>", methods=["GET"])
 def obtener_cliente(nit):
     """Obtiene un cliente específico"""
+    # Normalizar NIT para búsqueda
+    nit = nit.upper()
     if nit in clientes:
         return jsonify(clientes[nit].to_dict()), 200
     return jsonify({"error": "Cliente no encontrado"}), 404
@@ -349,8 +351,11 @@ def crear_cliente():
         ):
             return jsonify({"error": "Faltan campos requeridos"}), 400
 
+        # Normalizar NIT
+        nit = data["nit"].upper()
+
         cliente = Cliente(
-            data["nit"],
+            nit,
             data["nombre"],
             data["usuario"],
             data["clave"],
@@ -368,6 +373,9 @@ def crear_cliente():
 def actualizar_cliente(nit):
     """Actualiza un cliente existente"""
     try:
+        # Normalizar NIT
+        nit = nit.upper()
+
         if nit not in clientes:
             return jsonify({"error": "Cliente no encontrado"}), 404
 
@@ -398,6 +406,9 @@ def actualizar_cliente(nit):
 def eliminar_cliente(nit):
     """Elimina un cliente"""
     try:
+        # Normalizar NIT
+        nit = nit.upper()
+
         if nit in clientes:
             del clientes[nit]
             guardar_datos()
@@ -413,6 +424,9 @@ def eliminar_cliente(nit):
 @app.route("/instancias/<nit_cliente>", methods=["GET"])
 def listar_instancias_cliente(nit_cliente):
     """Lista todas las instancias de un cliente"""
+    # Normalizar NIT
+    nit_cliente = nit_cliente.upper()
+
     if nit_cliente in clientes:
         return jsonify([i.to_dict() for i in clientes[nit_cliente].instancias]), 200
     return jsonify({"error": "Cliente no encontrado"}), 404
@@ -422,6 +436,9 @@ def listar_instancias_cliente(nit_cliente):
 def crear_instancia(nit_cliente):
     """Crea una nueva instancia para un cliente"""
     try:
+        # Normalizar NIT
+        nit_cliente = nit_cliente.upper()
+
         if nit_cliente not in clientes:
             return jsonify({"error": "Cliente no encontrado"}), 404
 
@@ -455,6 +472,9 @@ def crear_instancia(nit_cliente):
 def cancelar_instancia(nit_cliente, id_instancia):
     """Cancela una instancia"""
     try:
+        # Normalizar NIT
+        nit_cliente = nit_cliente.upper()
+
         if nit_cliente not in clientes:
             return jsonify({"error": "Cliente no encontrado"}), 404
 
@@ -494,17 +514,25 @@ def listar_consumos():
 @app.route("/consumos/cliente/<nit_cliente>", methods=["GET"])
 def listar_consumos_cliente(nit_cliente):
     """Lista consumos de un cliente específico"""
-    consumos_cliente = [c.to_dict() for c in consumos if c.nit_cliente == nit_cliente]
+    # Normalizar NIT
+    nit_cliente = nit_cliente.upper()
+
+    consumos_cliente = [
+        c.to_dict() for c in consumos if c.nit_cliente.upper() == nit_cliente
+    ]
     return jsonify(consumos_cliente), 200
 
 
 @app.route("/consumos/no_facturados/<nit_cliente>", methods=["GET"])
 def consumos_no_facturados(nit_cliente):
     """Lista consumos no facturados de un cliente"""
+    # Normalizar NIT
+    nit_cliente = nit_cliente.upper()
+
     consumos_cliente = [
         c.to_dict()
         for c in consumos
-        if c.nit_cliente == nit_cliente and not c.facturado
+        if c.nit_cliente.upper() == nit_cliente and not c.facturado
     ]
     return jsonify(consumos_cliente), 200
 
@@ -520,8 +548,11 @@ def crear_consumo():
         ):
             return jsonify({"error": "Faltan campos requeridos"}), 400
 
+        # Normalizar NIT
+        nit_cliente = data["nit_cliente"].upper()
+
         consumo = Consumo(
-            data["nit_cliente"],
+            nit_cliente,
             data["id_instancia"],
             data["tiempo"],
             data["fecha_hora"],
@@ -547,27 +578,80 @@ def facturar():
         fecha_inicio = data.get("fecha_inicio")
         fecha_final = data.get("fecha_final")
 
-        # Agrupar consumos por cliente
+        print(f"\n{'='*60}")
+        print(f"🔍 Iniciando facturación: {fecha_inicio} a {fecha_final}")
+        print(f"{'='*60}")
+        print(f"📊 Total consumos en sistema: {len(consumos)}")
+        print(f"👥 Total clientes en sistema: {len(clientes)}")
+        print(f"🔧 Total recursos en sistema: {len(recursos)}")
+        print(f"📁 Total categorías en sistema: {len(categorias)}")
+
+        # Agrupar consumos por cliente (con NIT normalizado)
         consumos_por_cliente = {}
+        consumos_procesados = 0
+
         for consumo in consumos:
             if not consumo.facturado:
-                if consumo.nit_cliente not in consumos_por_cliente:
-                    consumos_por_cliente[consumo.nit_cliente] = []
-                consumos_por_cliente[consumo.nit_cliente].append(consumo)
+                # Normalizar NIT del consumo
+                nit_normalizado = consumo.nit_cliente.upper()
+
+                if nit_normalizado not in consumos_por_cliente:
+                    consumos_por_cliente[nit_normalizado] = []
+                consumos_por_cliente[nit_normalizado].append(consumo)
+                consumos_procesados += 1
+
+        print(f"✅ Consumos no facturados encontrados: {consumos_procesados}")
+        print(f"👤 Clientes con consumos pendientes: {len(consumos_por_cliente)}")
+        print(f"   NITs de clientes con consumos: {list(consumos_por_cliente.keys())}")
+        print(f"   NITs de clientes en sistema: {list(clientes.keys())}")
+
+        if consumos_procesados == 0:
+            print("⚠️ No hay consumos pendientes de facturar")
+            return (
+                jsonify(
+                    {
+                        "mensaje": "No hay consumos pendientes de facturar",
+                        "facturas_creadas": 0,
+                        "facturas": [],
+                    }
+                ),
+                200,
+            )
 
         facturas_creadas = []
 
         # Crear factura por cada cliente
         for nit, consumos_cliente in consumos_por_cliente.items():
+            print(f"\n{'='*60}")
+            print(f"💼 Procesando cliente NIT: {nit}")
+            print(f"   Consumos del cliente: {len(consumos_cliente)}")
+
+            # Buscar cliente (con NIT normalizado)
+            cliente = None
+            for nit_cliente in clientes.keys():
+                if nit_cliente.upper() == nit:
+                    cliente = clientes[nit_cliente]
+                    break
+
+            if not cliente:
+                print(f"   ❌ Cliente no encontrado para NIT: {nit}")
+                print(f"   NITs disponibles: {list(clientes.keys())}")
+                continue
+
+            print(f"   ✓ Cliente encontrado: {cliente.nombre}")
+            print(f"   Instancias del cliente: {len(cliente.instancias)}")
+
             monto_total = 0
             detalles = []
+            consumos_facturados = 0
 
-            for consumo in consumos_cliente:
-                # Buscar instancia y configuración
-                cliente = clientes.get(nit)
-                if not cliente:
-                    continue
+            for idx, consumo in enumerate(consumos_cliente, 1):
+                print(f"\n   📝 [{idx}/{len(consumos_cliente)}] Procesando consumo:")
+                print(f"      • ID Instancia: {consumo.id_instancia}")
+                print(f"      • Tiempo: {consumo.tiempo} horas")
+                print(f"      • Fecha: {consumo.fecha_hora}")
 
+                # Buscar instancia
                 instancia = None
                 for inst in cliente.instancias:
                     if inst.id == consumo.id_instancia:
@@ -575,7 +659,15 @@ def facturar():
                         break
 
                 if not instancia:
+                    print(f"      ❌ Instancia no encontrada: {consumo.id_instancia}")
+                    print(
+                        f"      IDs de instancias disponibles: {[i.id for i in cliente.instancias]}"
+                    )
                     continue
+
+                print(f"      ✓ Instancia encontrada: {instancia.nombre}")
+                print(f"      • ID Configuración: {instancia.id_configuracion}")
+                print(f"      • Estado: {instancia.estado}")
 
                 # Buscar configuración
                 configuracion = None
@@ -583,12 +675,27 @@ def facturar():
                     for conf in cat.configuraciones:
                         if conf.id == instancia.id_configuracion:
                             configuracion = conf
+                            print(
+                                f"      ✓ Configuración encontrada: {conf.nombre} (Categoría: {cat.nombre})"
+                            )
                             break
                     if configuracion:
                         break
 
                 if not configuracion:
+                    print(
+                        f"      ❌ Configuración no encontrada: {instancia.id_configuracion}"
+                    )
+                    # Mostrar configuraciones disponibles
+                    print(f"      Configuraciones disponibles:")
+                    for cat in categorias.values():
+                        for conf in cat.configuraciones:
+                            print(f"         - {conf.id}: {conf.nombre}")
                     continue
+
+                print(
+                    f"      • Recursos en configuración: {len(configuracion.recursos)}"
+                )
 
                 # Calcular costo
                 costo_consumo = 0
@@ -597,26 +704,55 @@ def facturar():
                     if recurso:
                         costo = float(cantidad) * recurso.valor_hora * consumo.tiempo
                         costo_consumo += costo
+                        print(f"         ✓ Recurso {recurso.nombre} ({id_rec}):")
+                        print(
+                            f"            {cantidad} x ${recurso.valor_hora}/hora x {consumo.tiempo}h = ${costo:.2f}"
+                        )
+                    else:
+                        print(f"         ❌ Recurso no encontrado: {id_rec}")
+                        print(f"         Recursos disponibles: {list(recursos.keys())}")
 
-                monto_total += costo_consumo
-                consumo.facturado = True
+                if costo_consumo > 0:
+                    monto_total += costo_consumo
+                    consumo.facturado = True
+                    consumos_facturados += 1
 
-                detalles.append(
-                    {
-                        "id_instancia": consumo.id_instancia,
-                        "tiempo": consumo.tiempo,
-                        "fecha_hora": consumo.fecha_hora,
-                        "costo": round(costo_consumo, 2),
-                    }
-                )
+                    detalles.append(
+                        {
+                            "id_instancia": consumo.id_instancia,
+                            "tiempo": consumo.tiempo,
+                            "fecha_hora": consumo.fecha_hora,
+                            "costo": round(costo_consumo, 2),
+                        }
+                    )
+                    print(f"      💰 Costo del consumo: ${costo_consumo:.2f}")
+                else:
+                    print(f"      ⚠️ Costo del consumo = $0.00 (no se facturará)")
+
+            print(f"\n   📊 Resumen del cliente:")
+            print(f"      • Consumos procesados: {len(consumos_cliente)}")
+            print(f"      • Consumos facturados: {consumos_facturados}")
+            print(f"      • Monto total: ${monto_total:.2f}")
 
             if monto_total > 0:
                 factura = Factura(nit, fecha_final, round(monto_total, 2))
                 factura.detalles = detalles
                 facturas[factura.numero] = factura
                 facturas_creadas.append(factura.to_dict())
+                print(f"   ✅ Factura #{factura.numero:06d} creada exitosamente")
+            else:
+                print(f"   ⚠️ No se generó factura (monto total = $0.00)")
 
         guardar_datos()
+
+        print(f"\n{'='*60}")
+        print(f"🎉 FACTURACIÓN COMPLETADA")
+        print(f"{'='*60}")
+        print(f"✓ Facturas generadas: {len(facturas_creadas)}")
+        print(
+            f"✓ Total facturado: ${sum(f['monto_total'] for f in facturas_creadas):.2f}"
+        )
+        print(f"{'='*60}\n")
 
         return (
             jsonify(
@@ -630,6 +766,12 @@ def facturar():
         )
 
     except Exception as e:
+        print(f"\n{'='*60}")
+        print(f"❌ ERROR EN FACTURACIÓN: {str(e)}")
+        print(f"{'='*60}")
+        import traceback
+
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 400
 
 
@@ -650,8 +792,11 @@ def obtener_factura(numero):
 @app.route("/facturas/cliente/<nit_cliente>", methods=["GET"])
 def listar_facturas_cliente(nit_cliente):
     """Lista facturas de un cliente específico"""
+    # Normalizar NIT
+    nit_cliente = nit_cliente.upper()
+
     facturas_cliente = [
-        f.to_dict() for f in facturas.values() if f.nit_cliente == nit_cliente
+        f.to_dict() for f in facturas.values() if f.nit_cliente.upper() == nit_cliente
     ]
     return jsonify(facturas_cliente), 200
 
@@ -722,6 +867,59 @@ def estadisticas():
     )
 
 
+# =============== DEBUG (TEMPORAL) ===============
+
+
+@app.route("/debug", methods=["GET"])
+def debug():
+    """Endpoint de diagnóstico para ver todos los datos del sistema"""
+    return (
+        jsonify(
+            {
+                "consumos": [c.to_dict() for c in consumos],
+                "consumos_no_facturados": [
+                    c.to_dict() for c in consumos if not c.facturado
+                ],
+                "clientes": {
+                    "total": len(clientes),
+                    "nits": list(clientes.keys()),
+                    "detalles": [
+                        {
+                            "nit": c.nit,
+                            "nombre": c.nombre,
+                            "instancias": len(c.instancias),
+                            "ids_instancias": [i.id for i in c.instancias],
+                        }
+                        for c in clientes.values()
+                    ],
+                },
+                "recursos": {
+                    "total": len(recursos),
+                    "ids": list(recursos.keys()),
+                    "detalles": [r.to_dict() for r in recursos.values()],
+                },
+                "categorias": [
+                    {
+                        "id": cat.id,
+                        "nombre": cat.nombre,
+                        "configuraciones": [
+                            {
+                                "id": conf.id,
+                                "nombre": conf.nombre,
+                                "recursos": conf.recursos,
+                            }
+                            for conf in cat.configuraciones
+                        ],
+                    }
+                    for cat in categorias.values()
+                ],
+                "facturas": [f.to_dict() for f in facturas.values()],
+            }
+        ),
+        200,
+    )
+
+
 # =============== INICIO DEL SERVIDOR ===============
 
 if __name__ == "__main__":
@@ -746,6 +944,7 @@ if __name__ == "__main__":
     print("   - POST /facturar")
     print("   - GET  /facturas")
     print("   - GET  /estadisticas")
+    print("   - GET  /debug (⚠️ temporal)")
     print("=" * 60)
 
     app.run(debug=True, port=5000, host="0.0.0.0")

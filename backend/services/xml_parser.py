@@ -70,6 +70,9 @@ class XMLParser:
         if lista_clientes is not None:
             for cli in lista_clientes.findall("cliente"):
                 nit = cli.get("nit")
+                # ⭐ NORMALIZAR NIT A MAYÚSCULAS
+                nit = nit.upper()
+
                 if not validar_nit(nit):
                     continue
 
@@ -125,6 +128,9 @@ class XMLParser:
 
         for cons in root.findall("consumo"):
             nit = cons.get("nitCliente")
+            # ⭐ NORMALIZAR NIT A MAYÚSCULAS
+            nit = nit.upper()
+
             id_inst = cons.get("idInstancia")
             tiempo = cons.find("tiempo").text.strip()
             fecha_hora_text = cons.find("fechaHora").text.strip()
